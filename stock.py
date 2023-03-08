@@ -3,13 +3,18 @@ import requests
 from bs4 import BeautifulSoup as bs
 from sqlalchemy import create_engine
 from datetime import datetime
+import dotenv, os
+from dotenv import dotenv_values
 
-# Database credentials
-db_user_name = 'postgres'
-db_password = 'Smiley12'
-host = 'localhost'
-port = 5432
-db_name = 'companies_stock_db'
+def get_database_conn():
+    dotenv.load_dotenv('C:/Users/MENKA/Downloads/My-project/Environment files/.env')
+    db_user_name = os.getenv('DB_USER_NAME')
+    db_password = os.getenv('DB_PASSWORD')
+    db_name = os.getenv('DB_NAME')
+    port = os.getenv('PORT')
+    host = os.getenv('HOST')
+    return create_engine(f'postgresql+psycopg2://{db_user_name}:{db_password}@{host}:{port}/{db_name}')
+
 
 header = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0", "Accept-Encoding":"gzip, deflate", "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "DNT":"1","Connection":"close", "Upgrade-Insecure-Requests":"1"}
 
@@ -54,8 +59,7 @@ def transform_data():
 def load_data():
     # Read the transformed csv into a DataFrame
     df = pd.read_csv('transformed_data/transformed_stock_info.csv')
-    # data = pd.read_csv('data/companies_stock_info.csv')
-    engine = create_engine(f'postgresql+psycopg2://{db_user_name}:{db_password}@{host}:{port}/{db_name}')
+    engine = get_database_conn()
     df.to_sql('company_stock', con=engine, if_exists='append', index=False)
     print('Data successfully written to postgreSQL database')
 
